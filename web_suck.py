@@ -138,89 +138,91 @@ def suck(rules, typeF, typeS, page, tree, url, folder, log, root):
                 typeCode = ""
                 if all_path[0] == "http:":
                     typeCode = "WP"
+                elif all_path[0] == "https:":
+                    typeCode = "External"
                 else:
                     typeCode = "Simple"
-
-                index = len(all_path) - 1
-                path_fObject = ""
-                for data in range(0, index):
-                    path_fObject = path_fObject + all_path[data] + "/"
-                    path_fObject = path_fObject.replace(url, '')
-                if os.path.isdir(folder + "/" + path_fObject) == False:
-                    os.makedirs(folder + "/" + path_fObject, 0755)
+                if typeCode == "Simple":
+                    index = len(all_path) - 1
+                    path_fObject = ""
+                    for data in range(0, index):
+                        path_fObject = path_fObject + all_path[data] + "/"
+                        path_fObject = path_fObject.replace(url, '')
+                    if os.path.isdir(folder + "/" + path_fObject) == False:
+                        os.makedirs(folder + "/" + path_fObject, 0755)
+                        with open(log, 'a') as file:
+                            file.write('Folder "' + path_fObject + '" created.\n')
                     with open(log, 'a') as file:
-                        file.write('Folder "' + path_fObject + '" created.\n')
-                with open(log, 'a') as file:
-                    file.write(path_fObject + all_path[index] + "\n")
-                if os.path.isfile(folder + '/' + path_fObject + all_path[index]) == False:
-                    u = urllib.urlopen(str(url) + path_fObject + all_path[index])
-                    data = u.read()
-                    f = open(folder + '/' + path_fObject + all_path[index], 'wb')
-                    f.write(data)
-                    f.close()
-                # suck images and fonts only from css
-                if typeS == "css":
-                    full_url = str(url) + path_fObject + all_path[index]
-                    u = urllib.urlopen(full_url)
-                    url_f_s = path_fObject.split("/")
+                        file.write(path_fObject + all_path[index] + "\n")
+                    if os.path.isfile(folder + '/' + path_fObject + all_path[index]) == False:
+                        u = urllib.urlopen(str(url) + path_fObject + all_path[index])
+                        data = u.read()
+                        f = open(folder + '/' + path_fObject + all_path[index], 'wb')
+                        f.write(data)
+                        f.close()
+                    # suck images and fonts only from css
+                    if typeS == "css":
+                        full_url = str(url) + path_fObject + all_path[index]
+                        u = urllib.urlopen(full_url)
+                        url_f_s = path_fObject.split("/")
 
-                    data = u.read()
-                    css_comments_removed = re.sub(r'\/\*.*?\*\/', '', data)
-                    css_comments_removed = re.sub('"', '', css_comments_removed)
-                    pattern = re.compile(r"url\('?(.*?\.[a-z]{3})")
-                    matches = pattern.findall(css_comments_removed)
-                    for i in matches:
+                        data = u.read()
+                        css_comments_removed = re.sub(r'\/\*.*?\*\/', '', data)
+                        css_comments_removed = re.sub('"', '', css_comments_removed)
+                        pattern = re.compile(r"url\('?(.*?\.[a-z]{3})")
+                        matches = pattern.findall(css_comments_removed)
+                        for i in matches:
 
-                        i = i.replace("'", "")
-                        valS = i.split("/")
-                        col = len(valS)
-                        if valS[0] == "..":
-                            if url_f_s[1] == "":
-                                url_f_s[0] = ""
-                            full_image = ""
-                            for st in range(1, col):
-                                full_image = full_image + "/" + valS[st]
-                            full_image = url_f_s[0] + full_image
-                            if os.path.isfile(folder + "/" + full_image) == False:
-                                with open(log, 'a') as file:
-                                    file.write("|--->" + full_image +"\n")
-                                ind = len(full_image.split("/")) - 1
-                                path_fObject = ""
-                                for data in range(0, ind):
-                                    path_fObject = path_fObject + full_image.split("/")[data] + "/"
-                                if os.path.isdir(folder + "/" + path_fObject) == False:
-                                    os.makedirs(folder + "/" + path_fObject, 0755)
-                                    with open(log, 'a') as file:
-                                        file.write('Folder "' + path_fObject + '" created.\n')
-                                u = urllib.urlopen(str(url) + full_image)
-                                data = u.read()
-                                f = open(folder + '/' + path_fObject + full_image.split("/")[ind], 'wb')
-                                f.write(data)
-                                f.close()
-                        else:
-                            if i[:1] != "/":
-                                i = "/" + i
-                            col = len(url_f_s)
-                            if url_f_s[0] != "":
-                                full_image = url_f_s[0]
+                            i = i.replace("'", "")
+                            valS = i.split("/")
+                            col = len(valS)
+                            if valS[0] == "..":
+                                if url_f_s[1] == "":
+                                    url_f_s[0] = ""
+                                full_image = ""
                                 for st in range(1, col):
-                                    full_image = full_image + "/" + url_f_s[st]
-                                full_image = full_image + i
+                                    full_image = full_image + "/" + valS[st]
+                                full_image = url_f_s[0] + full_image
+                                if os.path.isfile(folder + "/" + full_image) == False:
+                                    with open(log, 'a') as file:
+                                        file.write("|--->" + full_image +"\n")
+                                    ind = len(full_image.split("/")) - 1
+                                    path_fObject = ""
+                                    for data in range(0, ind):
+                                        path_fObject = path_fObject + full_image.split("/")[data] + "/"
+                                    if os.path.isdir(folder + "/" + path_fObject) == False:
+                                        os.makedirs(folder + "/" + path_fObject, 0755)
+                                        with open(log, 'a') as file:
+                                            file.write('Folder "' + path_fObject + '" created.\n')
+                                    u = urllib.urlopen(str(url) + full_image)
+                                    data = u.read()
+                                    f = open(folder + '/' + path_fObject + full_image.split("/")[ind], 'wb')
+                                    f.write(data)
+                                    f.close()
                             else:
-                                full_image = i
-                            if os.path.isfile(folder + "/" + full_image) == False:
-                                with open(log, 'a') as file:
-                                    file.write("|--->" + full_image + "\n")
+                                if i[:1] != "/":
+                                    i = "/" + i
+                                col = len(url_f_s)
+                                if url_f_s[0] != "":
+                                    full_image = url_f_s[0]
+                                    for st in range(1, col):
+                                        full_image = full_image + "/" + url_f_s[st]
+                                    full_image = full_image + i
+                                else:
+                                    full_image = i
+                                if os.path.isfile(folder + "/" + full_image) == False:
+                                    with open(log, 'a') as file:
+                                        file.write("|--->" + full_image + "\n")
 
-                                ind = len(full_image.split("/")) - 1
-                                path_fObject = ""
-                                for data in range(0, ind):
-                                    path_fObject = path_fObject + full_image.split("/")[data] + "/"
-                                if os.path.isdir(folder + "/" + path_fObject) == False:
-                                    os.makedirs(folder + "/" + path_fObject, 0755)
-                                u = urllib.urlopen(str(url) + full_image)
-                                data = u.read()
-                                f = open(folder + '/' + path_fObject + full_image.split("/")[ind], 'wb')
-                                f.write(data)
-                                f.close()
+                                    ind = len(full_image.split("/")) - 1
+                                    path_fObject = ""
+                                    for data in range(0, ind):
+                                        path_fObject = path_fObject + full_image.split("/")[data] + "/"
+                                    if os.path.isdir(folder + "/" + path_fObject) == False:
+                                        os.makedirs(folder + "/" + path_fObject, 0755)
+                                    u = urllib.urlopen(str(url) + full_image)
+                                    data = u.read()
+                                    f = open(folder + '/' + path_fObject + full_image.split("/")[ind], 'wb')
+                                    f.write(data)
+                                    f.close()
 root.mainloop()
